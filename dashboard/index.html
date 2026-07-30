@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MTC Show Dashboard</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="login-screen">
+    <h2>Majestic Theater Center Dashboard</h2>
+    <input type="password" id="password-input" placeholder="Enter password">
+    <button id="login-btn">Log In</button>
+    <div id="login-error"></div>
+</div>
+
+<div id="app-screen" style="display: none">
+    <h2>Welcome</h2>
+    <button id="query">Query</button>
+    <button id="insert">Insert Event</button>
+    <button id="logout-btn">Logout</button>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://idvimzbptayvfrpvfjzq.supabase.co'
+    const SUPABASE_ANON_KEY = 'sb_publishable_3oftkJ_frqxr0wJRTPq_eg_LGeG-EXO'
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.getElementById('login-btn').addEventListener('click', login);
+
+    async function login() {
+        const password = document.getElementById('password-input').value;
+        const errorBox = document.getElementById('login-error');
+        const { error } = await sb.auth.signInWithPassword({
+            email: "team@majesticdetroit.com",
+            password: password
+        });
+
+        if (error) {
+            errorBox.textContent = 'Incorrect password. Try again.';
+            return;
+        }
+
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app-screen').style.display='block';
+    }
+
+</script>
+
+</body>
+</html>
