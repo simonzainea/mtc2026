@@ -16,10 +16,37 @@
 
 <div id="app-screen" style="display: none">
     <h2>Welcome</h2>
-    <button id="query">Query</button>
-    <button id="insert">Insert Event</button>
+    <button id="query-btn">Query</button>
+    <button id="insert-btn">Insert Event</button>
     <button id="logout-btn">Logout</button>
+
+    <ul id="recent-list"></ul>
 </div>
+
+
+<div id="query-screen" style="display: none">
+    <h2>Query</h2>
+    <select id="venue-select">
+        <option value="">All Venues</option>
+        <option value="Majestic Theatre">Majestic Theater</option>
+        <option value="Magic Stick">Magic Stick</option>
+    </select>
+
+    <button id="search-btn">Search</button>
+    <ul id="query-results"></ul>
+    <select id="limit-select">
+    <option value="25">25 results</option>
+    <option value="50" selected>50 results</option>
+    <option value="100">100 results</option>
+    <option value="100000">All results</option>
+
+</select>
+
+</div>
+
+
+
+
 
 <script>
     const SUPABASE_URL = 'https://idvimzbptayvfrpvfjzq.supabase.co'
@@ -43,7 +70,68 @@
 
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app-screen').style.display='block';
+
+    loadPreview();
     }
+
+    async function loadPreview() {
+        const {data, error} = await sb 
+            .from('shows')
+            .select('*')
+            .order('show_date', { ascending: false })
+            .limit(10)
+        
+        console.log(data);
+
+        const container = document.getElementById('recent-list');
+        
+        data.forEach(show => {
+            const li = document.createElement('li');
+            li.textContent = show.artist_name + '-' + show.show_date + '-' + show.venue + '-' + 
+                            show.tickets_sold + '-' + show.gross_ticket_revenue + '-' + show.bar_revenue
+            container.appendChild(li);
+        });
+    }
+
+    document.getElementById('query-btn').addEventListener('click', query);
+
+    async function query() {
+        document.getElementById('app-screen').style.display='none';
+        document.getElementById('query-screen').style.display='block';
+    }
+
+    document.getElementById('search-btn').addEventListener('click', search);
+    
+
+    async function search() {
+        const venue = document.getElementById('venue-select').value;
+        const limit = parseInt(document.getElementById('limit-select').value);
+
+
+        let queryBuilder = sb.from('shows').select('*');
+        if (venue) {
+            queryBuilder = queryBuilder.eq('venue', venue);
+        }
+
+        queryBuilder = queryBuilder.limit(limit);
+
+        const { data, error } = await queryBuilder;
+        console.log(venue);
+        console.log(data);
+
+        const container = document.getElementById('query-results');
+        container.innerHTML = '';
+
+        data.forEach(show => {
+            const li = document.createElement('li');
+            li.textContent = show.artist_name + '-' + show.show_date + '-' + show.venue + '-' + 
+                            show.tickets_sold + '-' + show.gross_ticket_revenue + '-' + show.bar_revenue
+            container.appendChild(li);
+        })
+    }
+
+
+
 
 </script>
 
