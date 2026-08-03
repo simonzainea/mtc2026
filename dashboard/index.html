@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>MTC Show Dashboard</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<input type="text" id="artist-search" placeholder="Search artist name...">
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
 </head>
 <body>
 
@@ -27,6 +27,8 @@
 
 <div id="query-screen" style="display: none">
     <h2>Query</h2>
+
+    <input type="text" id="artist-search" placeholder="Search artist name...">
 
     <select id="venue-select">
         <option value="">All Venues</option>
@@ -69,7 +71,7 @@
     </select>
 
     <label>From <input type="date" id="date-from"></label>
-    <label>From <input type="date" id="date-to"></label>
+    <label>To <input type="date" id="date-to"></label>
 
     <div id="genre-checkboxes">
         <label><input type="checkbox" value="Rock"> Rock</label>
@@ -150,6 +152,7 @@
         document.getElementById('limit-select').value = '50';
         document.getElementById('sort-select').value = 'show_date';
         document.getElementById('ascending-toggle').checked = false;
+        document.getElementById('artist-search').value = '';
 
         document.querySelectorAll('#genre-checkboxes input[type="checkbox"]').forEach(cb => {
             cb.checked = false;
@@ -206,6 +209,7 @@
     
 
     async function search() {
+        const artistSearch = document.getElementById('artist-search').value;
         const venue = document.getElementById('venue-select').value;
         const limit = parseInt(document.getElementById('limit-select').value);
         const sort_column = document.getElementById('sort-select').value;
@@ -215,8 +219,8 @@
         const month = document.getElementById('month-select').value;
         const dateFrom = document.getElementById('date-from').value;
         const dateTo = document.getElementById('date-to').value;
-        const barCOGSToggle = documnet.getElementById('bar-toggle').checked;
-        const aegToggle = documnet.getElementById('aeg-toggle').checked;
+        const barCogsToggle = document.getElementById('bar-toggle').checked;
+        const aegToggle = document.getElementById('aeg-toggle').checked;
 
         const checkboxes = document.querySelectorAll('#genre-checkboxes input[type="checkbox"]');
         const selectedGenres = [];
@@ -266,6 +270,12 @@
             const showMonth = parseInt(show.show_date.slice(5, 7));
             return showMonth === parseInt(month);
             });
+        }
+
+        if (artistSearch) {
+            const fuse = new Fuse(results, {keys: ['artist_name'], threshold: 0.3});
+            const fuseResults = fuse.search(artistSearch);
+            results = fuseResults.map(result => result.item);
         }
 
         results = results.slice(0, limit);
