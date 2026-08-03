@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>MTC Show Dashboard</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<input type="text" id="artist-search" placeholder="Search artist name...">
 </head>
 <body>
 
@@ -26,21 +27,104 @@
 
 <div id="query-screen" style="display: none">
     <h2>Query</h2>
+
     <select id="venue-select">
         <option value="">All Venues</option>
         <option value="Majestic Theatre">Majestic Theater</option>
         <option value="Magic Stick">Magic Stick</option>
     </select>
 
-    <button id="search-btn">Search</button>
+    <select id="year-select">
+        <option value="">All Years</option>
+        <option value="2026">2026</option>
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+        <option value="2022">2022</option>
+        <option value="2019">2019</option>
+    </select>
+
+    <select id="quarter-select">
+        <option value="">All Quarters</option>
+        <option value="1">Q1 (Jan–Mar)</option>
+        <option value="2">Q2 (Apr–Jun)</option>
+        <option value="3">Q3 (Jul–Sep)</option>
+        <option value="4">Q4 (Oct–Dec)</option>
+    </select>
+
+    <select id="month-select">
+        <option value="">All Months</option>
+        <option value="1">January</option>
+        <option value="2">February</option>
+        <option value="3">March</option>
+        <option value="4">April</option>
+        <option value="5">May</option>
+        <option value="6">June</option>
+        <option value="7">July</option>
+        <option value="8">August</option>
+        <option value="9">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+    </select>
+
+    <label>From <input type="date" id="date-from"></label>
+    <label>From <input type="date" id="date-to"></label>
+
+    <div id="genre-checkboxes">
+        <label><input type="checkbox" value="Rock"> Rock</label>
+        <label><input type="checkbox" value="Electronic/Dance"> Electronic/Dance</label>
+        <label><input type="checkbox" value="Hip-Hop/R&B"> Hip-Hop/R&B</label>
+        <label><input type="checkbox" value="Metal/Hard Rock"> Metal/Hard Rock</label>
+        <label><input type="checkbox" value="Pop"> Pop</label>
+        <label><input type="checkbox" value="Comedy/Other"> Comedy/Other</label>
+        <label><input type="checkbox" value="Jazz/Blues/Soul"> Jazz/Blues/Soul</label>
+        <label><input type="checkbox" value="Country/Americana"> Country/Americana</label>
+    </div>
+
+    <div id="column-checkboxes">
+        <label><input type="checkbox" value="artist_name" checked> Artist</label>
+        <label><input type="checkbox" value="show_date" checked> Date</label>
+        <label><input type="checkbox" value="venue" checked> Venue</label>
+        <label><input type="checkbox" value="tickets_sold" checked> Tickets Sold</label>
+        <label><input type="checkbox" value="gross_ticket_revenue" checked> Gross Ticket Revenue</label>
+        <label><input type="checkbox" value="bar_revenue" checked> Bar Revenue</label>
+        <label><input type="checkbox" value="gate_settlement_gain_loss"> Gate</label>
+        <label><input type="checkbox" value="show_gross_proceeds"> Show Gross Proceeds</label>
+    </div>
+
+
+
+    <select id="sort-select">
+        <option value="show_date">Date</option>
+        <option value="show_gross_proceeds">Gross Proceeds</option>
+        <option value="bar_revenue">Bar Revenue</option>
+        <option value="gate_settlement_gain_loss">Gate</option>
+    </select>
+
+    <label>
+        <input type="checkbox" id="bar-toggle">Adjusted Bar (28% COGS)
+    </label>
+
+    <label>
+        <input type="checkbox" id="aeg-toggle">AEG Split (For Majestic Only)
+    </label>
+
+    <label>
+        <input type="checkbox" id="ascending-toggle">Ascending
+    </label>
+
+    
     <ul id="query-results"></ul>
     <select id="limit-select">
-    <option value="25">25 results</option>
-    <option value="50" selected>50 results</option>
-    <option value="100">100 results</option>
-    <option value="100000">All results</option>
+        <option value="25">25 results</option>
+        <option value="50" selected>50 results</option>
+        <option value="100">100 results</option>
+        <option value="100000">All results</option>
+    </select>
 
-</select>
+    <button id="search-btn">Search</button>
+    <button id="reset-btn">Reset filters</button>
 
 </div>
 
@@ -54,6 +138,25 @@
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     document.getElementById('login-btn').addEventListener('click', login);
+    document.getElementById('query-btn').addEventListener('click', query);
+    document.getElementById('search-btn').addEventListener('click', search);
+    document.getElementById('reset-btn').addEventListener('click', () => {
+        document.getElementById('venue-select').value = '';
+        document.getElementById('year-select').value = '';
+        document.getElementById('quarter-select').value = '';
+        document.getElementById('month-select').value = '';
+        document.getElementById('date-from').value = '';
+        document.getElementById('date-to').value = '';
+        document.getElementById('limit-select').value = '50';
+        document.getElementById('sort-select').value = 'show_date';
+        document.getElementById('ascending-toggle').checked = false;
+
+        document.querySelectorAll('#genre-checkboxes input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+        });
+        document.getElementById('query-results').innerHTML = '';
+    });
+
 
     async function login() {
         const password = document.getElementById('password-input').value;
@@ -93,41 +196,119 @@
         });
     }
 
-    document.getElementById('query-btn').addEventListener('click', query);
+    
 
     async function query() {
         document.getElementById('app-screen').style.display='none';
         document.getElementById('query-screen').style.display='block';
     }
 
-    document.getElementById('search-btn').addEventListener('click', search);
     
 
     async function search() {
         const venue = document.getElementById('venue-select').value;
         const limit = parseInt(document.getElementById('limit-select').value);
+        const sort_column = document.getElementById('sort-select').value;
+        const asc_toggle = document.getElementById('ascending-toggle').checked;
+        const year = document.getElementById('year-select').value;
+        const quarter = document.getElementById('quarter-select').value;
+        const month = document.getElementById('month-select').value;
+        const dateFrom = document.getElementById('date-from').value;
+        const dateTo = document.getElementById('date-to').value;
+        const barCOGSToggle = documnet.getElementById('bar-toggle').checked;
+        const aegToggle = documnet.getElementById('aeg-toggle').checked;
 
+        const checkboxes = document.querySelectorAll('#genre-checkboxes input[type="checkbox"]');
+        const selectedGenres = [];
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                selectedGenres.push(checkbox.value);
+            }
+        });
 
         let queryBuilder = sb.from('shows').select('*');
+
         if (venue) {
             queryBuilder = queryBuilder.eq('venue', venue);
         }
+        if (selectedGenres.length > 0) {
+            queryBuilder = queryBuilder.in('genre', selectedGenres);
+        }
+        if (year) {
+            const yearStart = year + '-01-01';
+            const yearEnd = year + '-12-31';
+            queryBuilder = queryBuilder.gte('show_date', yearStart).lte('show_date', yearEnd);
+        }
+        if (dateFrom) {
+            queryBuilder = queryBuilder.gte('show_date', dateFrom);
+        }
+        if (dateTo) {
+            queryBuilder = queryBuilder.lte('show_date', dateTo);
+        }
 
-        queryBuilder = queryBuilder.limit(limit);
+        queryBuilder = queryBuilder.order(sort_column, { ascending: asc_toggle });
+        // limit is applied later, after quarter filtering, not here
 
         const { data, error } = await queryBuilder;
-        console.log(venue);
-        console.log(data);
+
+        let results = data;
+
+        if (quarter) {
+            results = results.filter(show => {
+            const showMonthForQuarter = parseInt(show.show_date.slice(5, 7));
+            const showQuarter = Math.ceil(showMonthForQuarter / 3);
+            return showQuarter === parseInt(quarter);
+            });
+        }
+
+        if (month) {
+            results = results.filter(show => {
+            const showMonth = parseInt(show.show_date.slice(5, 7));
+            return showMonth === parseInt(month);
+            });
+        }
+
+        results = results.slice(0, limit);
+
+        results = results.map(show => {
+            const adjusted = { ...show };
+            const isMajestic = show.venue === 'Majestic Theatre';
+
+            if (isMajestic && aegToggle && barCogsToggle) {
+                adjusted.bar_revenue = show.bar_revenue * 0.42;
+            } else if (isMajestic && aegToggle) {
+                adjusted.bar_revenue = show.bar_revenue * 0.70;
+            } else if (barCogsToggle) {
+                adjusted.bar_revenue = show.bar_revenue * 0.72;
+            }
+            // if none of the above match, adjusted.bar_revenue stays as the original value
+
+            if (isMajestic && aegToggle) {
+                adjusted.gate_settlement_gain_loss = show.gate_settlement_gain_loss * 0.50;
+            }
+            // if aegToggle is off, or venue isn't Majestic, gate stays unchanged
+
+            return adjusted;
+        });
+
+        console.log(results);
+
+        const selectedColumns = [];
+        document.querySelectorAll('#column-checkboxes input[type="checkbox"]').forEach(checkbox => {
+        if (checkbox.checked) {
+            selectedColumns.push(checkbox.value);
+            }
+        });
 
         const container = document.getElementById('query-results');
         container.innerHTML = '';
 
-        data.forEach(show => {
+        results.forEach(show => {
             const li = document.createElement('li');
-            li.textContent = show.artist_name + '-' + show.show_date + '-' + show.venue + '-' + 
-                            show.tickets_sold + '-' + show.gross_ticket_revenue + '-' + show.bar_revenue
+            const parts = selectedColumns.map(col => show[col]);
+            li.textContent = parts.join(' - ');
             container.appendChild(li);
-        })
+        });
     }
 
 
