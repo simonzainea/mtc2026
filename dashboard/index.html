@@ -28,6 +28,7 @@
 <div id="query-screen" style="display: none">
     <h2>Query</h2>
 
+    <button id="back-from-query-btn">← Back to Preview</button>
     <input type="text" id="artist-search" placeholder="Search artist name...">
 
     <select id="venue-select">
@@ -131,7 +132,41 @@
 </div>
 
 
+<div id="insert-screen" style="display: none">
+    <h2>Insert</h2>
+    <button id="back-from-insert-btn">← Back to Preview</button>
+    <label>Venue
+        <select id="insert-venue">
+            <option value="Majestic Theatre">Majestic Theatre</option>
+            <option value="Magic Stick">Magic Stick</option>
+        </select>
+    </label>
+    <label>Artist Name <input type="text" id="insert-artist"></label>
+    <label>Date <input type="date" id="insert-date"></label>
+    <label>Genre
+        <select id="insert-genre">
+            <option value="Rock">Rock</option>
+            <option value="Electronic/Dance">Electronic/Dance</option>
+            <option value="Hip-Hop/R&B">Hip-Hop/R&B</option>
+            <option value="Metal/Hard Rock">Metal/Hard Rock</option>
+            <option value="Pop">Pop</option>
+            <option value="Comedy/Other">Comedy/Other</option>
+            <option value="Jazz/Blues/Soul">Jazz/Blues/Soul</option>
+            <option value="Country/Americana">Country/Americana</option>
+        </select>
+    </label>
+    <label>Tickets Sold <input type="number" id="insert-tickets"></label>
+    <label>Gross Ticket Revenue <input type="number" step="0.01" id="insert-gross-ticket"></label>
+    <label>Bar Revenue <input type="number" step="0.01" id="insert-bar"></label>
+    <label>Band Guarantee <input type="number" step="0.01" id="insert-guarantee"></label>
+    <label>Total Gate Settlement <input type="number" step="0.01" id="insert-gate"></label>
 
+    <label>Promoter Code <input type="text" id="insert-promoter-code"></label>
+    <label>Promoter Name <input type="text" id="insert-promoter-name"></label>
+
+    <button id="add-event-btn">Add event</button>
+    <div id="insert-status"></div>
+</div>
 
 
 <script>
@@ -140,6 +175,8 @@
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     document.getElementById('login-btn').addEventListener('click', login);
+    document.getElementById('insert-btn').addEventListener('click', insert);
+    document.getElementById('add-event-btn').addEventListener('click', addEvent);
     document.getElementById('query-btn').addEventListener('click', query);
     document.getElementById('search-btn').addEventListener('click', search);
     document.getElementById('reset-btn').addEventListener('click', () => {
@@ -160,7 +197,6 @@
         document.getElementById('query-results').innerHTML = '';
     });
 
-
     async function login() {
         const password = document.getElementById('password-input').value;
         const errorBox = document.getElementById('login-error');
@@ -174,39 +210,40 @@
             return;
         }
 
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app-screen').style.display='block';
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'block';
 
-    loadPreview();
+        loadPreview();
     }
 
     async function loadPreview() {
-        const {data, error} = await sb 
+        const { data, error } = await sb
             .from('shows')
             .select('*')
             .order('show_date', { ascending: false })
             .limit(10)
-        
+
         console.log(data);
 
         const container = document.getElementById('recent-list');
-        
+
         data.forEach(show => {
             const li = document.createElement('li');
-            li.textContent = show.artist_name + '-' + show.show_date + '-' + show.venue + '-' + 
+            li.textContent = show.artist_name + '-' + show.show_date + '-' + show.venue + '-' +
                             show.tickets_sold + '-' + show.gross_ticket_revenue + '-' + show.bar_revenue
             container.appendChild(li);
         });
     }
 
-    
-
     async function query() {
-        document.getElementById('app-screen').style.display='none';
-        document.getElementById('query-screen').style.display='block';
+        document.getElementById('app-screen').style.display = 'none';
+        document.getElementById('query-screen').style.display = 'block';
     }
 
-    
+    async function insert() {
+        document.getElementById('app-screen').style.display = 'none';
+        document.getElementById('insert-screen').style.display = 'block';
+    }
 
     async function search() {
         const artistSearch = document.getElementById('artist-search').value;
@@ -251,7 +288,6 @@
         }
 
         queryBuilder = queryBuilder.order(sort_column, { ascending: asc_toggle });
-        // limit is applied later, after quarter filtering, not here
 
         const { data, error } = await queryBuilder;
 
@@ -259,21 +295,21 @@
 
         if (quarter) {
             results = results.filter(show => {
-            const showMonthForQuarter = parseInt(show.show_date.slice(5, 7));
-            const showQuarter = Math.ceil(showMonthForQuarter / 3);
-            return showQuarter === parseInt(quarter);
+                const showMonthForQuarter = parseInt(show.show_date.slice(5, 7));
+                const showQuarter = Math.ceil(showMonthForQuarter / 3);
+                return showQuarter === parseInt(quarter);
             });
         }
 
         if (month) {
             results = results.filter(show => {
-            const showMonth = parseInt(show.show_date.slice(5, 7));
-            return showMonth === parseInt(month);
+                const showMonth = parseInt(show.show_date.slice(5, 7));
+                return showMonth === parseInt(month);
             });
         }
 
         if (artistSearch) {
-            const fuse = new Fuse(results, {keys: ['artist_name'], threshold: 0.3});
+            const fuse = new Fuse(results, { keys: ['artist_name'], threshold: 0.3 });
             const fuseResults = fuse.search(artistSearch);
             results = fuseResults.map(result => result.item);
         }
@@ -291,12 +327,10 @@
             } else if (barCogsToggle) {
                 adjusted.bar_revenue = show.bar_revenue * 0.72;
             }
-            // if none of the above match, adjusted.bar_revenue stays as the original value
 
             if (isMajestic && aegToggle) {
                 adjusted.gate_settlement_gain_loss = show.gate_settlement_gain_loss * 0.50;
             }
-            // if aegToggle is off, or venue isn't Majestic, gate stays unchanged
 
             return adjusted;
         });
@@ -305,8 +339,8 @@
 
         const selectedColumns = [];
         document.querySelectorAll('#column-checkboxes input[type="checkbox"]').forEach(checkbox => {
-        if (checkbox.checked) {
-            selectedColumns.push(checkbox.value);
+            if (checkbox.checked) {
+                selectedColumns.push(checkbox.value);
             }
         });
 
@@ -321,9 +355,86 @@
         });
     }
 
+    async function addEvent() {
+        const venue = document.getElementById('insert-venue').value;
+        const artist = document.getElementById('insert-artist').value;
+        const date = document.getElementById('insert-date').value;
+        const genre = document.getElementById('insert-genre').value;
+        const numTicket = parseInt(document.getElementById('insert-tickets').value);
+        const grossTicket = parseFloat(document.getElementById('insert-gross-ticket').value);
+        const bar = parseFloat(document.getElementById('insert-bar').value);
+        const band = parseFloat(document.getElementById('insert-guarantee').value);
+        const gate = parseFloat(document.getElementById('insert-gate').value);
+
+        const promoCode = document.getElementById('insert-promoter-code').value;
+        const promoName = document.getElementById('insert-promoter-name').value;
+
+        const venueCap = venue === 'Majestic Theatre' ? 1115 : 800;
+
+        const dayOfWeek = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' });
+
+        const capacityRate = numTicket / venueCap;
+        const avgTicketPrice = grossTicket / numTicket;
+        const avgAlcoholPerGuest = bar / numTicket;
+        const pctGrossTicketRevenue = band / grossTicket;
+        const showGrossProceeds = gate + bar;
+
+        const newShow = {
+            venue: venue,
+            show_date: date,
+            day_of_week: dayOfWeek,
+            artist_name: artist,
+            genre: genre,
+            promoter_code: promoCode || null,
+            promoter_name: promoName || null,
+            tickets_sold: numTicket,
+            venue_capacity: venueCap,
+            capacity_rate: capacityRate,
+            gross_ticket_revenue: grossTicket,
+            avg_ticket_price: avgTicketPrice,
+            bar_revenue: bar,
+            avg_alcohol_per_guest: avgAlcoholPerGuest,
+            band_guarantee: band,
+            pct_gross_ticket_revenue: pctGrossTicketRevenue,
+            gate_settlement_gain_loss: gate,
+            show_gross_proceeds: showGrossProceeds,
+            source_year: new Date(date + 'T00:00:00').getFullYear(),
+            source_file: 'Manual Entry via Dashboard',
+            data_notes: null
+        };
+
+        const { data, error } = await sb.from('shows').insert([newShow]);
+
+        const statusBox = document.getElementById('insert-status');
+        if (error) {
+            statusBox.textContent = 'Error adding show: ' + error.message;
+        } else {
+            statusBox.textContent = 'Show added successfully!';
+        }
+    }
+
+    function goToPreview() {
+        document.getElementById('query-screen').style.display = 'none';
+        document.getElementById('insert-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'block';
+    }
+
+    document.getElementById('back-from-query-btn').addEventListener('click', goToPreview);
+    document.getElementById('back-from-insert-btn').addEventListener('click', goToPreview);
 
 
+    document.getElementById('logout-btn').addEventListener('click', logout);
 
+    async function logout() {
+        await sb.auth.signOut();
+
+        document.getElementById('app-screen').style.display = 'none';
+        document.getElementById('query-screen').style.display = 'none';
+        document.getElementById('insert-screen').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'block';
+
+        document.getElementById('password-input').value = '';
+    }
 </script>
 
 </body>
