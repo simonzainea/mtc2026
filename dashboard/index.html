@@ -5,167 +5,344 @@
 <title>MTC Show Dashboard</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --bg: #FAF8F4;
+        --surface: #FFFFFF;
+        --border: #E4DFD5;
+        --text: #2B2622;
+        --text-dim: #8A8175;
+        --accent: #8C2F39;
+        --accent-hover: #6E252C;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        line-height: 1.5;
+    }
+
+    h1, h2, h3 {
+        font-family: 'Fraunces', serif;
+        font-weight: 600;
+        margin: 0 0 12px;
+    }
+
+    .marquee-header {
+        padding: 24px 32px 16px;
+        border-bottom: 3px solid var(--accent);
+        background: var(--surface);
+    }
+
+    .marquee-header::after {
+        content: '';
+        display: block;
+        height: 0;
+        border-bottom: 2px dashed var(--border);
+        margin-top: 10px;
+    }
+
+    .marquee-header h1 {
+        font-size: 26px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        margin: 0;
+    }
+
+    #login-screen, #app-screen, #query-screen, #insert-screen {
+        padding: 32px;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    #login-screen {
+        display: flex;
+        justify-content: center;
+        padding-top: 80px;
+    }
+
+    input, select {
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: var(--surface);
+        color: var(--text);
+        margin: 4px 4px 4px 0;
+    }
+
+    input:focus, select:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+    }
+
+    label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--text-dim);
+        margin: 4px 10px 4px 0;
+    }
+
+    button {
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 9px 16px;
+        border: none;
+        border-radius: 4px;
+        background: var(--accent);
+        color: white;
+        cursor: pointer;
+        margin: 4px 4px 4px 0;
+    }
+
+    button:hover { background: var(--accent-hover); }
+
+    #reset-btn, #back-from-query-btn, #back-from-insert-btn, #logout-btn {
+        background: transparent;
+        color: var(--text-dim);
+        border: 1px solid var(--border);
+    }
+
+    #reset-btn:hover, #back-from-query-btn:hover,
+    #back-from-insert-btn:hover, #logout-btn:hover {
+        color: var(--text);
+        border-color: var(--text-dim);
+        background: transparent;
+    }
+
+    .filter-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    #genre-checkboxes, #column-checkboxes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 8px 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 13px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    thead th {
+        text-align: left;
+        padding: 10px 12px;
+        background: #F2ECE4;
+        color: var(--text-dim);
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        border-bottom: 2px solid var(--border);
+    }
+
+    tbody td {
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr:nth-child(even) { background: #FBF9F5; }
+    tbody tr:hover { background: #F2ECE4; }
+
+    #insert-status {
+        margin-top: 12px;
+        font-size: 13px;
+        color: var(--accent);
+    }
+</style>
 </head>
 <body>
 
 <div id="login-screen">
-    <h2>Majestic Theater Center Dashboard</h2>
-    <input type="password" id="password-input" placeholder="Enter password">
-    <button id="login-btn">Log In</button>
-    <div id="login-error"></div>
+    <div>
+        <div class="marquee-header"><h1>Majestic Theatre Center Dashboard</h1></div>
+        <input type="password" id="password-input" placeholder="Enter password">
+        <button id="login-btn">Log In</button>
+        <div id="login-error"></div>
+    </div>
 </div>
 
 <div id="app-screen" style="display: none">
+    <div class="marquee-header"><h1>Majestic Theatre Center Dashboard</h1></div>
     <h2>Welcome</h2>
     <button id="query-btn">Query</button>
     <button id="insert-btn">Insert Event</button>
     <button id="logout-btn">Logout</button>
 
-    <ul id="recent-list"></ul>
+    <div id="recent-list"></div>
 </div>
 
 
 <div id="query-screen" style="display: none">
     <h2>Query</h2>
-
     <button id="back-from-query-btn">← Back to Preview</button>
-    <input type="text" id="artist-search" placeholder="Search artist name...">
 
-    <select id="venue-select">
-        <option value="">All Venues</option>
-        <option value="Majestic Theatre">Majestic Theater</option>
-        <option value="Magic Stick">Magic Stick</option>
-    </select>
+    <div class="filter-panel">
+        <input type="text" id="artist-search" placeholder="Search artist name...">
 
-    <select id="year-select">
-        <option value="">All Years</option>
-        <option value="2026">2026</option>
-        <option value="2025">2025</option>
-        <option value="2024">2024</option>
-        <option value="2023">2023</option>
-        <option value="2022">2022</option>
-        <option value="2019">2019</option>
-    </select>
+        <select id="venue-select">
+            <option value="">All Venues</option>
+            <option value="Majestic Theatre">Majestic Theatre</option>
+            <option value="Magic Stick">Magic Stick</option>
+        </select>
 
-    <select id="quarter-select">
-        <option value="">All Quarters</option>
-        <option value="1">Q1 (Jan–Mar)</option>
-        <option value="2">Q2 (Apr–Jun)</option>
-        <option value="3">Q3 (Jul–Sep)</option>
-        <option value="4">Q4 (Oct–Dec)</option>
-    </select>
+        <select id="year-select">
+            <option value="">All Years</option>
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+            <option value="2019">2019</option>
+        </select>
 
-    <select id="month-select">
-        <option value="">All Months</option>
-        <option value="1">January</option>
-        <option value="2">February</option>
-        <option value="3">March</option>
-        <option value="4">April</option>
-        <option value="5">May</option>
-        <option value="6">June</option>
-        <option value="7">July</option>
-        <option value="8">August</option>
-        <option value="9">September</option>
-        <option value="10">October</option>
-        <option value="11">November</option>
-        <option value="12">December</option>
-    </select>
+        <select id="quarter-select">
+            <option value="">All Quarters</option>
+            <option value="1">Q1 (Jan–Mar)</option>
+            <option value="2">Q2 (Apr–Jun)</option>
+            <option value="3">Q3 (Jul–Sep)</option>
+            <option value="4">Q4 (Oct–Dec)</option>
+        </select>
 
-    <label>From <input type="date" id="date-from"></label>
-    <label>To <input type="date" id="date-to"></label>
+        <select id="month-select">
+            <option value="">All Months</option>
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+        </select>
 
-    <div id="genre-checkboxes">
-        <label><input type="checkbox" value="Rock"> Rock</label>
-        <label><input type="checkbox" value="Electronic/Dance"> Electronic/Dance</label>
-        <label><input type="checkbox" value="Hip-Hop/R&B"> Hip-Hop/R&B</label>
-        <label><input type="checkbox" value="Metal/Hard Rock"> Metal/Hard Rock</label>
-        <label><input type="checkbox" value="Pop"> Pop</label>
-        <label><input type="checkbox" value="Comedy/Other"> Comedy/Other</label>
-        <label><input type="checkbox" value="Jazz/Blues/Soul"> Jazz/Blues/Soul</label>
-        <label><input type="checkbox" value="Country/Americana"> Country/Americana</label>
+        <label>From <input type="date" id="date-from"></label>
+        <label>To <input type="date" id="date-to"></label>
+
+        <div id="genre-checkboxes">
+            <label><input type="checkbox" value="Rock"> Rock</label>
+            <label><input type="checkbox" value="Electronic/Dance"> Electronic/Dance</label>
+            <label><input type="checkbox" value="Hip-Hop/R&B"> Hip-Hop/R&B</label>
+            <label><input type="checkbox" value="Metal/Hard Rock"> Metal/Hard Rock</label>
+            <label><input type="checkbox" value="Pop"> Pop</label>
+            <label><input type="checkbox" value="Comedy/Other"> Comedy/Other</label>
+            <label><input type="checkbox" value="Jazz/Blues/Soul"> Jazz/Blues/Soul</label>
+            <label><input type="checkbox" value="Country/Americana"> Country/Americana</label>
+        </div>
+
+        <div id="column-checkboxes">
+            <label><input type="checkbox" value="artist_name" checked> Artist</label>
+            <label><input type="checkbox" value="show_date" checked> Date</label>
+            <label><input type="checkbox" value="venue" checked> Venue</label>
+            <label><input type="checkbox" value="tickets_sold" checked> Tickets Sold</label>
+            <label><input type="checkbox" value="gross_ticket_revenue" checked> Gross Ticket Revenue</label>
+            <label><input type="checkbox" value="bar_revenue" checked> Bar Revenue</label>
+            <label><input type="checkbox" value="gate_settlement_gain_loss"> Gate</label>
+            <label><input type="checkbox" value="show_gross_proceeds"> Show Gross Proceeds</label>
+        </div>
+
+        <select id="sort-select">
+            <option value="show_date">Date</option>
+            <option value="show_gross_proceeds">Gross Proceeds</option>
+            <option value="bar_revenue">Bar Revenue</option>
+            <option value="gate_settlement_gain_loss">Gate</option>
+        </select>
+
+        <label><input type="checkbox" id="bar-toggle"> Adjusted Bar (28% COGS)</label>
+        <label><input type="checkbox" id="aeg-toggle"> AEG Split (For Majestic Only)</label>
+        <label><input type="checkbox" id="ascending-toggle"> Ascending</label>
+
+        <select id="limit-select">
+            <option value="25">25 results</option>
+            <option value="50" selected>50 results</option>
+            <option value="100">100 results</option>
+            <option value="100000">All results</option>
+        </select>
+
+        <button id="search-btn">Search</button>
+        <button id="reset-btn">Reset filters</button>
     </div>
 
-    <div id="column-checkboxes">
-        <label><input type="checkbox" value="artist_name" checked> Artist</label>
-        <label><input type="checkbox" value="show_date" checked> Date</label>
-        <label><input type="checkbox" value="venue" checked> Venue</label>
-        <label><input type="checkbox" value="tickets_sold" checked> Tickets Sold</label>
-        <label><input type="checkbox" value="gross_ticket_revenue" checked> Gross Ticket Revenue</label>
-        <label><input type="checkbox" value="bar_revenue" checked> Bar Revenue</label>
-        <label><input type="checkbox" value="gate_settlement_gain_loss"> Gate</label>
-        <label><input type="checkbox" value="show_gross_proceeds"> Show Gross Proceeds</label>
-    </div>
-
-
-
-    <select id="sort-select">
-        <option value="show_date">Date</option>
-        <option value="show_gross_proceeds">Gross Proceeds</option>
-        <option value="bar_revenue">Bar Revenue</option>
-        <option value="gate_settlement_gain_loss">Gate</option>
-    </select>
-
-    <label>
-        <input type="checkbox" id="bar-toggle">Adjusted Bar (28% COGS)
-    </label>
-
-    <label>
-        <input type="checkbox" id="aeg-toggle">AEG Split (For Majestic Only)
-    </label>
-
-    <label>
-        <input type="checkbox" id="ascending-toggle">Ascending
-    </label>
-
-    
-    <ul id="query-results"></ul>
-    <select id="limit-select">
-        <option value="25">25 results</option>
-        <option value="50" selected>50 results</option>
-        <option value="100">100 results</option>
-        <option value="100000">All results</option>
-    </select>
-
-    <button id="search-btn">Search</button>
-    <button id="reset-btn">Reset filters</button>
-
+    <div id="query-results"></div>
 </div>
 
 
 <div id="insert-screen" style="display: none">
     <h2>Insert</h2>
+    <div class="filter-panel">
+        <input type="text" id="edit-search" placeholder="Search existing shows to edit...">
+        <button id="edit-search-btn">Search</button>
+        <div id="edit-search-results"></div>
+    </div>
+
     <button id="back-from-insert-btn">← Back to Preview</button>
-    <label>Venue
-        <select id="insert-venue">
-            <option value="Majestic Theatre">Majestic Theatre</option>
-            <option value="Magic Stick">Magic Stick</option>
-        </select>
-    </label>
-    <label>Artist Name <input type="text" id="insert-artist"></label>
-    <label>Date <input type="date" id="insert-date"></label>
-    <label>Genre
-        <select id="insert-genre">
-            <option value="Rock">Rock</option>
-            <option value="Electronic/Dance">Electronic/Dance</option>
-            <option value="Hip-Hop/R&B">Hip-Hop/R&B</option>
-            <option value="Metal/Hard Rock">Metal/Hard Rock</option>
-            <option value="Pop">Pop</option>
-            <option value="Comedy/Other">Comedy/Other</option>
-            <option value="Jazz/Blues/Soul">Jazz/Blues/Soul</option>
-            <option value="Country/Americana">Country/Americana</option>
-        </select>
-    </label>
-    <label>Tickets Sold <input type="number" id="insert-tickets"></label>
-    <label>Gross Ticket Revenue <input type="number" step="0.01" id="insert-gross-ticket"></label>
-    <label>Bar Revenue <input type="number" step="0.01" id="insert-bar"></label>
-    <label>Band Guarantee <input type="number" step="0.01" id="insert-guarantee"></label>
-    <label>Total Gate Settlement <input type="number" step="0.01" id="insert-gate"></label>
 
-    <label>Promoter Code <input type="text" id="insert-promoter-code"></label>
-    <label>Promoter Name <input type="text" id="insert-promoter-name"></label>
+    <div class="filter-panel">
+        <label>Venue
+            <select id="insert-venue">
+                <option value="Majestic Theatre">Majestic Theatre</option>
+                <option value="Magic Stick">Magic Stick</option>
+            </select>
+        </label>
+        <label>Artist Name <input type="text" id="insert-artist"></label>
+        <label>Date <input type="date" id="insert-date"></label>
+        <label>Genre
+            <select id="insert-genre">
+                <option value="Rock">Rock</option>
+                <option value="Electronic/Dance">Electronic/Dance</option>
+                <option value="Hip-Hop/R&B">Hip-Hop/R&B</option>
+                <option value="Metal/Hard Rock">Metal/Hard Rock</option>
+                <option value="Pop">Pop</option>
+                <option value="Comedy/Other">Comedy/Other</option>
+                <option value="Jazz/Blues/Soul">Jazz/Blues/Soul</option>
+                <option value="Country/Americana">Country/Americana</option>
+            </select>
+        </label>
+        <label>Tickets Sold <input type="number" id="insert-tickets"></label>
+        <label>Gross Ticket Revenue <input type="number" step="0.01" id="insert-gross-ticket"></label>
+        <label>Bar Revenue <input type="number" step="0.01" id="insert-bar"></label>
+        <label>Band Guarantee <input type="number" step="0.01" id="insert-guarantee"></label>
+        <label>Total Gate Settlement <input type="number" step="0.01" id="insert-gate"></label>
 
-    <button id="add-event-btn">Add event</button>
-    <div id="insert-status"></div>
+        <label>Promoter Code <input type="text" id="insert-promoter-code"></label>
+        <label>Promoter Name <input type="text" id="insert-promoter-name"></label>
+
+        <button id="add-event-btn">Add event</button>
+        <button id="update-event-btn" style="display:none">Update Show</button>
+        <button id="delete-event-btn" style="display:none">Delete Show</button>
+        <button id="new-event-btn" style="display:none">+ New Show</button>
+        <div id="insert-status"></div>
+    </div>
 </div>
 
 
@@ -173,12 +350,17 @@
     const SUPABASE_URL = 'https://idvimzbptayvfrpvfjzq.supabase.co'
     const SUPABASE_ANON_KEY = 'sb_publishable_3oftkJ_frqxr0wJRTPq_eg_LGeG-EXO'
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let editingShowId = null;
 
     document.getElementById('login-btn').addEventListener('click', login);
     document.getElementById('insert-btn').addEventListener('click', insert);
     document.getElementById('add-event-btn').addEventListener('click', addEvent);
     document.getElementById('query-btn').addEventListener('click', query);
     document.getElementById('search-btn').addEventListener('click', search);
+    document.getElementById('logout-btn').addEventListener('click', logout);
+    document.getElementById('back-from-query-btn').addEventListener('click', goToPreview);
+    document.getElementById('back-from-insert-btn').addEventListener('click', goToPreview);
+
     document.getElementById('reset-btn').addEventListener('click', () => {
         document.getElementById('venue-select').value = '';
         document.getElementById('year-select').value = '';
@@ -189,12 +371,34 @@
         document.getElementById('limit-select').value = '50';
         document.getElementById('sort-select').value = 'show_date';
         document.getElementById('ascending-toggle').checked = false;
+        document.getElementById('bar-toggle').checked = false;
+        document.getElementById('aeg-toggle').checked = false;
         document.getElementById('artist-search').value = '';
 
         document.querySelectorAll('#genre-checkboxes input[type="checkbox"]').forEach(cb => {
             cb.checked = false;
         });
         document.getElementById('query-results').innerHTML = '';
+    });
+
+    document.getElementById('edit-search-btn').addEventListener('click', async () => {
+        const term = document.getElementById('edit-search').value;
+        const { data, error } = await sb.from('shows').select('*');
+
+        const fuse = new Fuse(data, { keys: ['artist_name'], threshold: 0.3 });
+        const matches = fuse.search(term).map(r => r.item);
+
+        const resultsBox = document.getElementById('edit-search-results');
+        resultsBox.innerHTML = '';
+
+        matches.forEach(show => {
+            const div = document.createElement('div');
+            div.textContent = show.artist_name + ' — ' + show.show_date + ' — ' + show.venue;
+            div.style.cursor = 'pointer';
+            div.style.padding = '4px 0';
+            div.addEventListener('click', () => loadShowIntoForm(show));
+            resultsBox.appendChild(div);
+        });
     });
 
     async function login() {
@@ -216,6 +420,17 @@
         loadPreview();
     }
 
+    async function logout() {
+        await sb.auth.signOut();
+
+        document.getElementById('app-screen').style.display = 'none';
+        document.getElementById('query-screen').style.display = 'none';
+        document.getElementById('insert-screen').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex';
+
+        document.getElementById('password-input').value = '';
+    }
+
     async function loadPreview() {
         const { data, error } = await sb
             .from('shows')
@@ -223,15 +438,19 @@
             .order('show_date', { ascending: false })
             .limit(10)
 
-        console.log(data);
-
         const container = document.getElementById('recent-list');
+        container.innerHTML = `
+            <table>
+                <thead><tr><th>Artist</th><th>Date</th><th>Venue</th><th>Tickets</th><th>Gross Ticket Revenue</th><th>Bar Revenue</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        `;
+        const tbody = container.querySelector('tbody');
 
         data.forEach(show => {
-            const li = document.createElement('li');
-            li.textContent = show.artist_name + '-' + show.show_date + '-' + show.venue + '-' +
-                            show.tickets_sold + '-' + show.gross_ticket_revenue + '-' + show.bar_revenue
-            container.appendChild(li);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${show.artist_name}</td><td>${show.show_date}</td><td>${show.venue}</td><td>${show.tickets_sold}</td><td>${show.gross_ticket_revenue}</td><td>${show.bar_revenue}</td>`;
+            tbody.appendChild(tr);
         });
     }
 
@@ -243,6 +462,12 @@
     async function insert() {
         document.getElementById('app-screen').style.display = 'none';
         document.getElementById('insert-screen').style.display = 'block';
+    }
+
+    function goToPreview() {
+        document.getElementById('query-screen').style.display = 'none';
+        document.getElementById('insert-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'block';
     }
 
     async function search() {
@@ -335,8 +560,6 @@
             return adjusted;
         });
 
-        console.log(results);
-
         const selectedColumns = [];
         document.querySelectorAll('#column-checkboxes input[type="checkbox"]').forEach(checkbox => {
             if (checkbox.checked) {
@@ -345,17 +568,43 @@
         });
 
         const container = document.getElementById('query-results');
-        container.innerHTML = '';
+        container.innerHTML = `
+            <table>
+                <thead><tr>${selectedColumns.map(col => '<th>' + col + '</th>').join('')}</tr></thead>
+                <tbody></tbody>
+            </table>
+        `;
+        const tbody = container.querySelector('tbody');
 
         results.forEach(show => {
-            const li = document.createElement('li');
-            const parts = selectedColumns.map(col => show[col]);
-            li.textContent = parts.join(' - ');
-            container.appendChild(li);
+            const tr = document.createElement('tr');
+            tr.innerHTML = selectedColumns.map(col => '<td>' + show[col] + '</td>').join('');
+            tbody.appendChild(tr);
         });
     }
 
-    async function addEvent() {
+    function loadShowIntoForm(show) {
+        editingShowId = show.id;
+
+        document.getElementById('insert-venue').value = show.venue;
+        document.getElementById('insert-artist').value = show.artist_name;
+        document.getElementById('insert-date').value = show.show_date;
+        document.getElementById('insert-genre').value = show.genre;
+        document.getElementById('insert-tickets').value = show.tickets_sold;
+        document.getElementById('insert-gross-ticket').value = show.gross_ticket_revenue;
+        document.getElementById('insert-bar').value = show.bar_revenue;
+        document.getElementById('insert-guarantee').value = show.band_guarantee;
+        document.getElementById('insert-gate').value = show.gate_settlement_gain_loss;
+        document.getElementById('insert-promoter-code').value = show.promoter_code || '';
+        document.getElementById('insert-promoter-name').value = show.promoter_name || '';
+
+        document.getElementById('add-event-btn').style.display = 'none';
+        document.getElementById('update-event-btn').style.display = 'inline-block';
+        document.getElementById('delete-event-btn').style.display = 'inline-block';
+        document.getElementById('new-event-btn').style.display = 'inline-block';
+    }
+
+    function buildShowFromForm() {
         const venue = document.getElementById('insert-venue').value;
         const artist = document.getElementById('insert-artist').value;
         const date = document.getElementById('insert-date').value;
@@ -365,21 +614,13 @@
         const bar = parseFloat(document.getElementById('insert-bar').value);
         const band = parseFloat(document.getElementById('insert-guarantee').value);
         const gate = parseFloat(document.getElementById('insert-gate').value);
-
         const promoCode = document.getElementById('insert-promoter-code').value;
         const promoName = document.getElementById('insert-promoter-name').value;
 
         const venueCap = venue === 'Majestic Theatre' ? 1115 : 800;
-
         const dayOfWeek = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' });
 
-        const capacityRate = numTicket / venueCap;
-        const avgTicketPrice = grossTicket / numTicket;
-        const avgAlcoholPerGuest = bar / numTicket;
-        const pctGrossTicketRevenue = band / grossTicket;
-        const showGrossProceeds = gate + bar;
-
-        const newShow = {
+        return {
             venue: venue,
             show_date: date,
             day_of_week: dayOfWeek,
@@ -389,20 +630,23 @@
             promoter_name: promoName || null,
             tickets_sold: numTicket,
             venue_capacity: venueCap,
-            capacity_rate: capacityRate,
+            capacity_rate: numTicket / venueCap,
             gross_ticket_revenue: grossTicket,
-            avg_ticket_price: avgTicketPrice,
+            avg_ticket_price: grossTicket / numTicket,
             bar_revenue: bar,
-            avg_alcohol_per_guest: avgAlcoholPerGuest,
+            avg_alcohol_per_guest: bar / numTicket,
             band_guarantee: band,
-            pct_gross_ticket_revenue: pctGrossTicketRevenue,
+            pct_gross_ticket_revenue: band / grossTicket,
             gate_settlement_gain_loss: gate,
-            show_gross_proceeds: showGrossProceeds,
+            show_gross_proceeds: gate + bar,
             source_year: new Date(date + 'T00:00:00').getFullYear(),
             source_file: 'Manual Entry via Dashboard',
             data_notes: null
         };
+    }
 
+    async function addEvent() {
+        const newShow = buildShowFromForm();
         const { data, error } = await sb.from('shows').insert([newShow]);
 
         const statusBox = document.getElementById('insert-status');
@@ -413,27 +657,47 @@
         }
     }
 
-    function goToPreview() {
-        document.getElementById('query-screen').style.display = 'none';
-        document.getElementById('insert-screen').style.display = 'none';
-        document.getElementById('app-screen').style.display = 'block';
-    }
+    document.getElementById('update-event-btn').addEventListener('click', async () => {
+        const updatedShow = buildShowFromForm();
+        const { data, error } = await sb.from('shows').update(updatedShow).eq('id', editingShowId);
 
-    document.getElementById('back-from-query-btn').addEventListener('click', goToPreview);
-    document.getElementById('back-from-insert-btn').addEventListener('click', goToPreview);
+        const statusBox = document.getElementById('insert-status');
+        statusBox.textContent = error ? 'Error updating show: ' + error.message : 'Show updated successfully!';
+    });
 
+    document.getElementById('delete-event-btn').addEventListener('click', async () => {
+        const confirmed = confirm('Are you sure you want to delete this show? This cannot be undone.');
+        if (!confirmed) return;
 
-    document.getElementById('logout-btn').addEventListener('click', logout);
+        const { error } = await sb.from('shows').delete().eq('id', editingShowId);
 
-    async function logout() {
-        await sb.auth.signOut();
+        const statusBox = document.getElementById('insert-status');
+        if (error) {
+            statusBox.textContent = 'Error deleting show: ' + error.message;
+        } else {
+            statusBox.textContent = 'Show deleted.';
+            resetInsertForm();
+        }
+    });
 
-        document.getElementById('app-screen').style.display = 'none';
-        document.getElementById('query-screen').style.display = 'none';
-        document.getElementById('insert-screen').style.display = 'none';
-        document.getElementById('login-screen').style.display = 'block';
+    document.getElementById('new-event-btn').addEventListener('click', resetInsertForm);
 
-        document.getElementById('password-input').value = '';
+    function resetInsertForm() {
+        editingShowId = null;
+        document.getElementById('insert-artist').value = '';
+        document.getElementById('insert-date').value = '';
+        document.getElementById('insert-tickets').value = '';
+        document.getElementById('insert-gross-ticket').value = '';
+        document.getElementById('insert-bar').value = '';
+        document.getElementById('insert-guarantee').value = '';
+        document.getElementById('insert-gate').value = '';
+        document.getElementById('insert-promoter-code').value = '';
+        document.getElementById('insert-promoter-name').value = '';
+
+        document.getElementById('add-event-btn').style.display = 'inline-block';
+        document.getElementById('update-event-btn').style.display = 'none';
+        document.getElementById('delete-event-btn').style.display = 'none';
+        document.getElementById('new-event-btn').style.display = 'none';
     }
 </script>
 
